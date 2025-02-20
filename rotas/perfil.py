@@ -8,18 +8,38 @@ router = APIRouter(
     tags=["perfil"],
 
 )
-
-
 engine = get_engine()
 
-
-@router.get("/perfil", response_model=list[Perfil])
+@router.get("/perfil", response_model=list[Perfil]) # Rota para pegar todos os perfis
 async def pegar_todos_perfis(skip: int = 0, limit: int = 10):
     perfis = await engine.find(Perfil, skip=skip, limit=limit)
     return perfis
         
 
-@router.post("/perfil", response_model=Perfil)
+@router.post("/perfil", response_model=Perfil) # Rota para criar um perfil
 async def criar_perfil(perfil : Perfil) -> Perfil:
     await engine.save(perfil)
     return perfil
+
+@router.get("/perfil/{perfil_id}", response_model=Perfil) # Rota para pegar um perfil específico
+async def pegar_perfil(perfil_id: str) -> Perfil:
+    perfil = await engine.find_one(Perfil, Perfil.id == ObjectId(perfil_id))
+    if perfil:
+        return perfil
+    raise HTTPException(status_code=404, detail="Perfil não encontrado")
+
+
+#trocar dps
+@router.put("/perfil/{perfil_id}", response_model=Perfil) # Rota para atualizar um perfil
+async def atualizar_perfil(perfil_id: str, perfil: Perfil) -> Perfil:
+    await engine.save(perfil)
+    return perfil
+
+
+@router.delete("/perfil/{perfil_id}") # Rota para deletar um perfil
+async def deletar_perfil(perfil_id: str):
+    perfil = await engine.find_one(Perfil, Perfil.id == ObjectId(perfil_id))
+    if not perfil:
+        raise HTTPException(status_code=404, detail="Perfil não encontrado")
+    await engine.delete(perfil)
+    return {"message": "Perfil deletado com sucesso!"}
