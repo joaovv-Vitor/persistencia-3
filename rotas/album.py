@@ -25,6 +25,8 @@ async def pegar_album(album_id: str):
         return album
     raise HTTPException(status_code=404, detail="Album não encontrado")
 
+
+#atualizar
 @router.post("/album", response_model=Album) # Rota para criar um álbum
 async def criar_album(album: Album) -> Album:
     perfil = await engine.find_one(Perfil, Perfil.id == ObjectId(album.perfil.id))
