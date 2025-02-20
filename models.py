@@ -7,19 +7,24 @@ class Perfil(Model):
     email : str
     bio : str
 
-class Album(EmbeddedModel):  # Álbum agora é um subdocumento
+
+# Modelo Publicacoes
+class Publicacoes(Model):
+    legenda: str
+    curtidas: int
+    data_criacao: datetime
+    imagem: str
+    perfil: Perfil = Reference()  
+    album: Optional[list["Album"]] = []  
+
+# Modelo Album
+class Album(Model):
     titulo: str
     capa: str
-    perfil: Perfil = Reference()
+    perfil: Perfil = Reference()  
+    publicacoes: Optional[list[Publicacoes]] = []  
+    
 
-
-class Publicacoes(Model):
-    legenda : str
-    curtidas: int
-    data_cricao: datetime.datetime
-    imagem : str
-    perfil: Perfil = Reference()
-    album: list[Optional[Album]] = []
-
+    
 
 

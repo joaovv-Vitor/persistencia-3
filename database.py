@@ -8,7 +8,6 @@ load_dotenv()
 
 # Busca a URL de conexão do MongoDB Atlas do arquivo .env
 DATABASE_URL = os.getenv("DATABASE_URL")
-
 # Valida se a URL foi carregada corretamente
 if not DATABASE_URL:
     raise ValueError("A variável de ambiente DATABASE_URL não foi definida.")
