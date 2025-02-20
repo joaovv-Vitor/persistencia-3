@@ -30,9 +30,25 @@ async def associar_publi_album(publi_id: str, album_id: str):
     album.publicacao_ids.append(str(publi_id))
     await engine.save(album)
     
-    return {"message": 'teu certo'}
+    return {"message": 'album e publicação associados com sucesso!'}
 
+@router.delete("/publi_album") # Rota para desassociar uma publicação de um álbum
+async def desassociar_publi_album(publi_id: str, album_id: str):
+    publi = await engine.find_one(Publicacao, Publicacao.id == ObjectId(publi_id))
+    if not publi:
+        raise HTTPException(status_code=404, detail="Publicação não encontrada")
     
+    album = await engine.find_one(Album, Album.id == ObjectId(album_id))
+    if not album:
+        raise HTTPException(status_code=404, detail="Álbum não encontrado")
+    
+    publi.album_ids.remove(str(album_id))
+    await engine.save(publi)
+    
+    album.publicacao_ids.remove(str(publi_id))
+    await engine.save(album)
+    
+    return {"message": 'album e publicação desassociados com sucesso!'}
 
 
     

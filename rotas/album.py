@@ -37,12 +37,6 @@ async def criar_album(album: Album) -> Album:
     return uptade_album
 
 
-from fastapi import APIRouter, HTTPException
-from database import get_engine
-from models import Perfil, Publicacao, Album
-from odmantic import ObjectId, query
-
-
 @router.put("/album/{album_id}", response_model=Album) # Rota para atualizar um álbum
 async def atualizar_album(album_id: str, album_data: Album) -> Album:
     existing_album = await engine.find_one(Album, Album.id == ObjectId(album_id))
@@ -57,6 +51,14 @@ async def atualizar_album(album_id: str, album_data: Album) -> Album:
     
     await engine.save(existing_album)
     return existing_album
+
+@router.delete("/album/{album_id}") # Rota para deletar um álbum
+async def deletar_album(album_id: str):
+    album = await engine.find_one(Album, Album.id == ObjectId(album_id))
+    if not album:
+        raise HTTPException(status_code=404, detail="Album não encontrado")
+    await engine.delete(album)
+    return {"message": "Album deletado com sucesso!"}
 
 
 
@@ -75,3 +77,5 @@ async def pegar_publicacoes_album(album_id: str):
     
     publicacoes = await engine.find(Publicacao, query.in_(Publicacao.id, publicacao_ids))
     return publicacoes
+
+
