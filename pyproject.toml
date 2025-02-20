@@ -19,6 +19,7 @@ dev = [
     "pytest-cov>=6.0.0",
     "ruff>=0.9.6",
     "taskipy>=1.14.1",
+    "persistencia-3",
 ]
 
 [tool.ruff]
@@ -38,3 +39,6 @@ run = 'fastapi dev .\main.py'
 lint = 'ruff check . && ruff check . --diff'
 format = 'ruff check . --fix && ruff format .'
 venv = '.venv\Scripts\activate'
+
+[tool.uv.sources]
+persistencia-3 = { workspace = true }

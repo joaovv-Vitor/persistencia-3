@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from rotas import perfil
+from rotas import perfil, album
 
 # FastAPI app instance
 app = FastAPI()
@@ -12,3 +12,4 @@ async def root():
 
 
 app.include_router(perfil.router)
+app.include_router(album.router)
