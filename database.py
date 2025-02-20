@@ -19,7 +19,7 @@ client = AsyncIOMotorClient(DATABASE_URL)
 db = client.mydatabase
 
 # Cria uma instância do AIOEngine do odmantic
-engine = AIOEngine(client=client, database="mydatabase")
+engine = AIOEngine(client=client, database="persistencia-3")
 
 # Função para retornar a instância do AIOEngine
 def get_engine() -> AIOEngine:
