@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from database import get_engine
 from models import Perfil, Publicacao, Album
-from odmantic import ObjectId
+from odmantic import ObjectId, query
 
 router = APIRouter(
     prefix="/album",
@@ -10,12 +10,6 @@ router = APIRouter(
 )
 engine = get_engine()
 
-
-
-# @router.get("/album", response_model=list[Album]) # Rota para pegar todos os álbuns
-# async def pegar_todos_albums(skip: int = 0, limit: int = 10):
-#     albums = await engine.find(Album, skip=skip, limit=limit)
-#     return albums
 
 @router.get("/album", response_model=list[Album]) # Rota para pegar todos os álbuns
 async def pegar_todos_albums(skip: int = 0, limit: int = 10):
@@ -38,15 +32,46 @@ async def criar_album(album: Album) -> Album:
     if not perfil:
         raise HTTPException(status_code=404, detail="Perfil não encontrado")
     album.perfil = perfil
-    await engine.save(album)
-    return album
+    uptade_album = album.model_copy(update={"id": ObjectId(album.id)})
+    await engine.save(uptade_album)
+    return uptade_album
+
+
+from fastapi import APIRouter, HTTPException
+from database import get_engine
+from models import Perfil, Publicacao, Album
+from odmantic import ObjectId, query
+
 
 @router.put("/album/{album_id}", response_model=Album) # Rota para atualizar um álbum
-async def atualizar_album(album_id: str, album: Album) -> Album:
+async def atualizar_album(album_id: str, album_data: Album) -> Album:
     existing_album = await engine.find_one(Album, Album.id == ObjectId(album_id))
     if not existing_album:
         raise HTTPException(status_code=404, detail="Album não encontrado")
     
-    updated_album = album.model_copy(update={"id": ObjectId(album_id)})
-    await engine.save(updated_album)
-    return updated_album
+    # Atualizando os campos do álbum existente com os novos dados
+    updated_album_data = album_data.model_dump(exclude_unset=True)
+    
+    for key, value in updated_album_data.items():
+        setattr(existing_album, key, value)
+    
+    await engine.save(existing_album)
+    return existing_album
+
+
+
+
+
+#pegar todas as publicações de um album
+@router.get("/album/{album_id}/publicacoes", response_model=list[Publicacao])
+async def pegar_publicacoes_album(album_id: str):
+    album = await engine.find_one(Album, Album.id == ObjectId(album_id))
+    if not album:
+        raise HTTPException(status_code=404, detail="Album não encontrado")
+    
+    # Convertendo publicacao_ids para ObjectId
+    # publicacao_ids = [ObjectId(pub_id) for pub_id in album.publicacao_ids]
+    publicacao_ids = [ObjectId(pub_id) for pub_id in album.publicacao_ids if ObjectId.is_valid(pub_id)]
+    
+    publicacoes = await engine.find(Publicacao, query.in_(Publicacao.id, publicacao_ids))
+    return publicacoes
