@@ -21,9 +21,17 @@ async def associar_publi_album(publi_id: str, album_id: str):
     if not album:
         raise HTTPException(status_code=404, detail="Álbum não encontrado")
     
-    up_publi = publi.model_copy(update={"album_ids": [ObjectId(album_id)]})
-    await engine.save(up_publi)
-     
+    # up_publi = publi.model_copy(update={"album_ids": [ObjectId(album_id)]})
+    # await engine.save(up_publi)
+
+    publi.album_ids.append(str(album_id))
+    await engine.save(publi)
+    
+    album.publicacao_ids.append(str(publi_id))
+    await engine.save(album)
+    
+    return {"message": 'teu certo'}
+
     
 
 

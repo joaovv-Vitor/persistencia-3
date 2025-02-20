@@ -12,6 +12,11 @@ engine = get_engine()
 
 
 
+# @router.get("/album", response_model=list[Album]) # Rota para pegar todos os álbuns
+# async def pegar_todos_albums(skip: int = 0, limit: int = 10):
+#     albums = await engine.find(Album, skip=skip, limit=limit)
+#     return albums
+
 @router.get("/album", response_model=list[Album]) # Rota para pegar todos os álbuns
 async def pegar_todos_albums(skip: int = 0, limit: int = 10):
     albums = await engine.find(Album, skip=skip, limit=limit)

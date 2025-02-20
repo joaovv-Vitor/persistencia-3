@@ -15,14 +15,15 @@ class Publicacao(Model):
     data_criacao: datetime.datetime
     imagem: str
     perfil: Perfil = Reference()
-    album_ids: Optional[list[object]] = Field(default_factory=list)  # Lista de IDs de álbuns
+    album_ids: Optional[list[str]] = Field(default_factory=list)  # Lista de IDs de álbuns
 
 # Classe Album
 class Album(Model):
     titulo: str
     capa: str
     perfil: Perfil = Reference()
-    publicacao_ids: Optional[list[object]] = Field(default_factory=list)  # Lista de IDs de publicações
+    publicacao_ids: Optional[list[str]] = Field(default_factory=list)  # Lista de IDs de publicações
+
     
 
 
