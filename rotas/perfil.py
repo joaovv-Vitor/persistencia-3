@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from database import get_engine
 from models import Perfil
 from odmantic import ObjectId
+import re
 
 router = APIRouter(
     prefix="/perfil",
@@ -48,3 +49,18 @@ async def deletar_perfil(perfil_id: str):
         raise HTTPException(status_code=404, detail="Perfil não encontrado")
     await engine.delete(perfil)
     return {"message": "Perfil deletado com sucesso!"}
+
+
+# Busca parcial por nome
+@router.get("/perfil/buscar", response_model=list[Perfil])
+async def buscar_perfil_por_nome(query: str = Query(..., description="Nome parcial do perfil para busca")):
+    regex = re.compile(query, re.IGNORECASE)
+    perfis = await engine.find(Perfil, Perfil.nome.match(regex))
+    return perfis
+
+
+# Contar número total de perfis
+@router.get("/perfil/contagem")
+async def contar_perfis():
+    total_perfis = await engine.count(Perfil)
+    return {"total_perfis": total_perfis}
