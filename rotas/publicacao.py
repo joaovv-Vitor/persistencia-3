@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from database import get_engine
 from models import Perfil, Publicacao, Album
 from odmantic import ObjectId
+import re
 
 router = APIRouter(
     prefix="/publicacao",
@@ -72,3 +73,50 @@ async def deletar_publicacao(publicacao_id: str):
         raise HTTPException(status_code=404, detail="Publicação não encontrada")
     await engine.delete(publicacao)
     return {"message": "Publicação deletada com sucesso!"}
+
+
+# Retorna as publicoes com base no id do perfil
+@router.get("/perfil/{perfil_id}", response_model=list[Publicacao])
+async def get_publicacoes_por_perfil(perfil_id: str, skip: int = 0, limit: int = 10):
+    publicacoes = await engine.find(Publicacao, Publicacao.perfil.id == ObjectId(perfil_id), skip=skip, limit=limit)
+    return publicacoes
+
+
+# Retorna as publicaoces do album x
+@router.get("/pub/album/{album_id}", response_model=list[Publicacao])
+async def get_publicacoes_por_album(album_id: str, skip: int = 0, limit: int = 10):
+    publicacoes = await engine.find(Publicacao, Publicacao.album_ids == album_id, skip=skip, limit=limit)
+    return publicacoes
+
+
+# Busca parcial na legenda
+@router.get("/parcial", response_model=list[Publicacao])
+async def search_publicacoes(query: str = Query(..., description="Texto:    "), 
+                             skip: int = 0, limit: int = 10):
+    regex = re.compile(query, re.IGNORECASE)
+    publicacoes = await engine.find(Publicacao, Publicacao.legenda.match(regex), skip=skip, limit=limit)
+    return publicacoes
+
+
+# Count de pubs em geral
+@router.get("/countTotal")
+async def aggregate_total_publicacoes():
+    pipeline = [
+        {"$group": {"_id": None, "total": {"$sum": 1}}}
+    ]
+    total = 0
+    async for doc in engine.aggregate(Publicacao, pipeline):
+        total = doc.get("total", 0)
+    return {"total_publicacoes": total}
+
+
+# Count de pubs dos perfis
+@router.get("/countPerfil")
+async def aggregate_publicacoes_por_perfil():
+    pipeline = [
+        {"$group": {"_id": "$perfil", "total": {"$sum": 1}}}
+    ]
+    resultados = []
+    async for doc in engine.aggregate(Publicacao, pipeline):
+        resultados.append(doc)
+    return resultados
