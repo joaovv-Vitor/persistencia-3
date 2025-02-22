@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from database import get_engine
 from models import Perfil, Publicacao, Album
 from odmantic import ObjectId, query
+import re
 
 router = APIRouter(
     prefix="/album",
@@ -52,6 +53,7 @@ async def atualizar_album(album_id: str, album_data: Album) -> Album:
     await engine.save(existing_album)
     return existing_album
 
+
 @router.delete("/album/{album_id}") # Rota para deletar um álbum
 async def deletar_album(album_id: str):
     album = await engine.find_one(Album, Album.id == ObjectId(album_id))
@@ -61,10 +63,7 @@ async def deletar_album(album_id: str):
     return {"message": "Album deletado com sucesso!"}
 
 
-
-
-
-#pegar todas as publicações de um album
+# Pegar todas as publicações de um album
 @router.get("/album/{album_id}/publicacoes", response_model=list[Publicacao])
 async def pegar_publicacoes_album(album_id: str):
     album = await engine.find_one(Album, Album.id == ObjectId(album_id))
@@ -79,3 +78,29 @@ async def pegar_publicacoes_album(album_id: str):
     return publicacoes
 
 
+# Retorna os albuns do perfil x
+@router.get("/perfil/{perfil_id}", response_model=list[Album])
+async def get_albuns_por_perfil(perfil_id: str, skip: int = 0, limit: int = 10):
+    albuns = await engine.find(Album, Album.perfil.id == ObjectId(perfil_id), skip=skip, limit=limit)
+    return albuns
+
+
+# Busca parcial nos titulos dos albuns
+@router.get("/search", response_model=list[Album])
+async def search_album_por_titulo(query: str = Query(..., description="Texto parcial para busca no título"),
+                                  skip: int = 0, limit: int = 10):
+    regex = re.compile(query, re.IGNORECASE)
+    albuns = await engine.find(Album, Album.titulo.match(regex), skip=skip, limit=limit)
+    return albuns
+
+
+# Quantos albuns cada perfil tem
+@router.get("/por_perfil")
+async def aggregate_albuns_por_perfil():
+    pipeline = [
+        {"$group": {"_id": "$perfil", "total": {"$sum": 1}}}
+    ]
+    resultados = []
+    async for doc in engine.aggregate(Album, pipeline):
+        resultados.append(doc)
+    return resultados
