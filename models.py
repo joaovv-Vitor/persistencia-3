@@ -1,10 +1,11 @@
 from odmantic import Model, Reference, Field
+from typing import Optional
 import datetime
 
 class Perfil(Model):
-    nome: str | None = None
-    email: str | None = None
-    bio: str | None = None
+    nome: Optional[str] = None
+    email: Optional[str] = None
+    bio: Optional[str] = None
 
 # Classe Publicacao
 class Publicacao(Model):
@@ -13,11 +14,11 @@ class Publicacao(Model):
     data_criacao: datetime.datetime
     imagem: str
     perfil: Perfil = Reference()
-    album_ids: list[str] | None = Field(default_factory=list)
+    album_ids: Optional[list[str]] = Field(default_factory=list)
 
 # Classe Album
 class Album(Model):
-    titulo: str | None = None
-    capa: str | None = None
+    titulo: Optional[str] = None
+    capa: Optional[str] = None
     perfil: Perfil = Reference()
-    publicacao_ids: list[str] | None = Field(default_factory=list)
+    publicacao_ids: Optional[list[str]] = Field(default_factory=list)
