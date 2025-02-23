@@ -14,13 +14,14 @@ router = APIRouter(
 engine = get_engine()
 
 
-@router.get("/album", response_model=list[Album])  # Rota para pegar todos os álbuns
+@router.get("/album", response_model=list[Album])  # Pegar todos os álbuns
 async def pegar_todos_albums(skip: int = 0, limit: int = 10):
     albums = await engine.find(Album, skip=skip, limit=limit)
     return albums
 
 
-@router.get("/album/{album_id}", response_model=Album)  # Rota para pegar um álbum específico
+# Rota para pegar um álbum específico
+@router.get("/album/{album_id}", response_model=Album)
 async def pegar_album(album_id: str):
     album = await engine.find_one(Album, Album.id == ObjectId(album_id))
     if album:
@@ -31,7 +32,8 @@ async def pegar_album(album_id: str):
 # atualizar
 @router.post("/album", response_model=Album)  # Rota para criar um álbum
 async def criar_album(album: Album) -> Album:
-    perfil = await engine.find_one(Perfil, Perfil.id == ObjectId(album.perfil.id))
+    perfil = await engine.find_one(
+        Perfil, Perfil.id == ObjectId(album.perfil.id))
     if not perfil:
         raise HTTPException(status_code=404, detail="Perfil não encontrado")
     album.perfil = perfil
@@ -40,9 +42,12 @@ async def criar_album(album: Album) -> Album:
     return uptade_album
 
 
-@router.put("/album/{album_id}", response_model=Album)  # Rota para atualizar um álbum
+# Rota para atualizar um álbum
+@router.put("/album/{album_id}", response_model=Album)
 async def atualizar_album(album_id: str, album_data: Album) -> Album:
-    existing_album = await engine.find_one(Album, Album.id == ObjectId(album_id))
+    existing_album = await engine.find_one(
+        Album,
+        Album.id == ObjectId(album_id))
     if not existing_album:
         raise HTTPException(status_code=404, detail="Album não encontrado")
 
@@ -73,31 +78,44 @@ async def pegar_publicacoes_album(album_id: str):
         raise HTTPException(status_code=404, detail="Album não encontrado")
 
     # Convertendo publicacao_ids para ObjectId
-    publicacao_ids = [ObjectId(pub_id) for pub_id in album.publicacao_ids if ObjectId.is_valid(pub_id)]
+    publicacao_ids = [
+        ObjectId(pub_id) for pub_id in
+        album.publicacao_ids if ObjectId.is_valid(pub_id)]
 
-    publicacoes = await engine.find(Publicacao, query.in_(Publicacao.id, publicacao_ids))
+    publicacoes = await engine.find(
+        Publicacao,
+        query.in_(Publicacao.id, publicacao_ids))
     return publicacoes
 
 
 # Retorna os albuns do perfil x
 @router.get("/perfil/{perfil_id}", response_model=list[Album])
-async def get_albuns_por_perfil(perfil_id: str, skip: int = 0, limit: int = 10):
+async def get_albuns_por_perfil(
+    perfil_id: str,
+    skip: int = 0, limit: int = 10):
     # Checa se perfil existe
-    perfil_obj = await engine.find_one(Perfil, Perfil.id == ObjectId(perfil_id))
+    perfil_obj = await engine.find_one(
+        Perfil, Perfil.id == ObjectId(perfil_id))
     if not perfil_obj:
         raise HTTPException(status_code=404, detail="Perfil não encontrado")
 
     # procura os albuns do perfil encontrado
-    albuns = await engine.find(Album, Album.perfil == perfil_obj.id, skip=skip, limit=limit)
+    albuns = await engine.find(
+        Album,
+        Album.perfil == perfil_obj.id, skip=skip, limit=limit)
     return albuns
 
 
 # Busca parcial nos titulos dos albuns
 @router.get("/search", response_model=list[Album])
-async def search_album_por_titulo(query: str = Query(..., description="Texto parcial para busca no título"),
-                                  skip: int = 0, limit: int = 10):
+async def search_album_por_titulo(
+    query: str = Query(..., description="Texto parcial para busca no título"),
+    skip: int = 0, limit: int = 10):
     regex = re.compile(query, re.IGNORECASE)
-    albuns = await engine.find(Album, Album.titulo.match(regex), skip=skip, limit=limit)
+    albuns = await engine.find(
+        Album,
+        Album.titulo.match(regex),
+        skip=skip, limit=limit)
     return albuns
 
 
@@ -108,6 +126,10 @@ async def get_publicacoes_album(album_id: str, skip: int = 0, limit: int = 10):
     if not album:
         raise HTTPException(status_code=404, detail="Album não encontrado")
 
-    publicacao_ids = [ObjectId(pub_id) for pub_id in album.publicacao_ids if ObjectId.is_valid(pub_id)]
-    publicacoes = await engine.find(Publicacao, query.in_(Publicacao.id, publicacao_ids), skip=skip, limit=limit)
+    publicacao_ids = [
+        ObjectId(pub_id) for pub_id in
+        album.publicacao_ids if ObjectId.is_valid(pub_id)]
+    publicacoes = await engine.find(
+        Publicacao,
+        query.in_(Publicacao.id, publicacao_ids), skip=skip, limit=limit)
     return publicacoes

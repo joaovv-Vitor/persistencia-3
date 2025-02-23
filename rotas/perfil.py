@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, Query
 from odmantic import ObjectId, query
 
 from database import get_engine
-from models import Perfil, Album, Publicacao
+from models import Album, Perfil, Publicacao
 
 router = APIRouter(
     prefix="/perfil",
@@ -14,7 +14,8 @@ router = APIRouter(
 engine = get_engine()
 
 
-@router.get("/perfil", response_model=list[Perfil])  # Rota para pegar todos os perfis
+# Rota para pegar todos os perfis
+@router.get("/perfil", response_model=list[Perfil])
 async def pegar_todos_perfis(skip: int = 0, limit: int = 10):
     perfis = await engine.find(Perfil, skip=skip, limit=limit)
     return perfis
@@ -26,7 +27,8 @@ async def criar_perfil(perfil: Perfil) -> Perfil:
     return perfil
 
 
-@router.get("/perfil/{perfil_id}", response_model=Perfil)  # Rota para pegar um perfil específico
+# Rota para pegar um perfil específico
+@router.get("/perfil/{perfil_id}", response_model=Perfil)
 async def pegar_perfil(perfil_id: str) -> Perfil:
     perfil = await engine.find_one(Perfil, Perfil.id == ObjectId(perfil_id))
     if perfil:
@@ -34,13 +36,15 @@ async def pegar_perfil(perfil_id: str) -> Perfil:
     raise HTTPException(status_code=404, detail="Perfil não encontrado")
 
 
-@router.put("/perfil/{perfil_id}", response_model=Perfil)  # Rota para atualizar um perfil
+# Rota para atualizar um perfil
+@router.put("/perfil/{perfil_id}", response_model=Perfil)
 async def atualizar_perfil(perfil_id: str, perfil: Perfil) -> Perfil:
     perfil = await engine.find_one(Perfil, Perfil.id == ObjectId(perfil_id))
     if not perfil:
         raise HTTPException(status_code=404, detail="Perfil não encontrado")
 
-    updated_perfil = perfil.model_copy(update=perfil.model_dump(exclude_unset=True))
+    updated_perfil = perfil.model_copy(
+        update=perfil.model_dump(exclude_unset=True))
 
     await engine.save(updated_perfil)
     return updated_perfil
@@ -57,7 +61,8 @@ async def deletar_perfil(perfil_id: str):
 
 # Busca parcial por nome
 @router.get("/buscar_parcial", response_model=list[Perfil])
-async def buscar_perfil_por_nome(query: str = Query(..., description="Nome parcial do perfil para busca")):
+async def buscar_perfil_por_nome(
+    query: str = Query(..., description="Nome parcial do perfil para busca")):
     busc = re.compile(query, re.IGNORECASE)
     perfis = await engine.find(Perfil, Perfil.nome.match(busc))
     return perfis
@@ -70,7 +75,6 @@ async def contar_perfis():
     return {"total_perfis": total}
 
 
-
 # Pegar todos os albuns e publicacoes de um perfil
 @router.get("/perfil/{perfil_id}/albunsPerfil")
 async def pegar_albuns_e_publicacoes_de_perfil(perfil_id: str):
@@ -79,6 +83,8 @@ async def pegar_albuns_e_publicacoes_de_perfil(perfil_id: str):
         raise HTTPException(status_code=404, detail="Perfil não encontrado")
 
     albuns = await engine.find(Album, query.eq(Album.perfil, perfil.id))
-    publicacao = await engine.find(Publicacao, query.eq(Publicacao.perfil, perfil.id))
+    publicacao = await engine.find(
+        Publicacao,
+        query.eq(Publicacao.perfil, perfil.id))
 
     return {"perfil": perfil, "albuns": albuns, "publicacoes": publicacao}
