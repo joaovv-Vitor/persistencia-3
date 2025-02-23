@@ -1,7 +1,8 @@
+import os
+
 from dotenv import load_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient
 from odmantic import AIOEngine
-import os
 
 # Carrega as variáveis de ambiente do arquivo .env
 load_dotenv()
@@ -20,6 +21,7 @@ db = client.mydatabase
 
 # Cria uma instância do AIOEngine do odmantic
 engine = AIOEngine(client=client, database="persistencia-3")
+
 
 # Função para retornar a instância do AIOEngine
 def get_engine() -> AIOEngine:

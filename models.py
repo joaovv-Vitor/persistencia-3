@@ -1,11 +1,14 @@
-from odmantic import Model, Reference, Field
-from typing import Optional
 import datetime
+from typing import Optional
+
+from odmantic import Field, Model, Reference
+
 
 class Perfil(Model):
     nome: Optional[str] = None
     email: Optional[str] = None
     bio: Optional[str] = None
+
 
 # Classe Publicacao
 class Publicacao(Model):
@@ -15,6 +18,7 @@ class Publicacao(Model):
     imagem: str
     perfil: Perfil = Reference()
     album_ids: Optional[list[str]] = Field(default_factory=list)
+
 
 # Classe Album
 class Album(Model):
