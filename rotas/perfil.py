@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, Query
 from odmantic import ObjectId
 
 from database import get_engine
-from models import Perfil
+from models import Perfil, Album, Publicacao
 
 router = APIRouter(
     prefix="/perfil",
@@ -68,3 +68,17 @@ async def buscar_perfil_por_nome(query: str = Query(..., description="Nome parci
 async def contar_perfis():
     total = await engine.count(Perfil)
     return {"total_perfis": total}
+
+
+
+#pegar todos os albuns e publicacoes de um perfil
+@router.get("/perfil/{perfil_id}/albunsPerfil")
+async def pegar_albuns_e_publicacoes_de_perfil(perfil_id: str):
+    perfil = await engine.find_one(Perfil, Perfil.id == ObjectId(perfil_id))
+    if not perfil:
+        raise HTTPException(status_code=404, detail="Perfil não encontrado")
+
+    albuns = await engine.find(Album, query.eq(Album.perfil, perfil.id))
+    publicacao = await engine.find(Publicacao, query.eq(Publicacao.perfil, perfil.id))
+
+    return {"perfil": perfil, "albuns": albuns, "publicacoes": publicacao}
