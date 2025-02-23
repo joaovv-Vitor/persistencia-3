@@ -1,7 +1,7 @@
 import re
 
 from fastapi import APIRouter, HTTPException, Query
-from odmantic import ObjectId
+from odmantic import ObjectId, query
 
 from database import get_engine
 from models import Perfil, Album, Publicacao
@@ -71,7 +71,7 @@ async def contar_perfis():
 
 
 
-#pegar todos os albuns e publicacoes de um perfil
+# Pegar todos os albuns e publicacoes de um perfil
 @router.get("/perfil/{perfil_id}/albunsPerfil")
 async def pegar_albuns_e_publicacoes_de_perfil(perfil_id: str):
     perfil = await engine.find_one(Perfil, Perfil.id == ObjectId(perfil_id))
